@@ -1,0 +1,25 @@
+{
+  "name": "daytiles-obsidian",
+  "version": "0.1.0",
+  "description": "Render daytiles SVG calendars from code blocks in Obsidian.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "copy-meta": "node scripts/copy-meta.mjs"
+  },
+  "keywords": ["obsidian", "plugin", "calendar", "daytiles"],
+  "author": "omi",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.20.0",
+    "obsidian": "latest",
+    "tslib": "^2.6.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}
