@@ -33,17 +33,18 @@ export function waitForDataview(plugin: DaytilesPlugin, timeoutMs = 4000): Promi
   if (direct) return Promise.resolve(direct);
   return new Promise((resolve) => {
     let resolved = false;
+    let timer: number | undefined;
     const finish = (api: DataviewApi | null) => {
       if (resolved) return;
       resolved = true;
+      if (timer !== undefined) window.clearTimeout(timer);
       resolve(api);
     };
     const handler = () => finish(getDataviewApi(plugin));
-    plugin.app.workspace.on(DATAVIEW.apiReadyEvent as never, handler);
-    setTimeout(() => {
-      plugin.app.workspace.off(DATAVIEW.apiReadyEvent as never, handler);
-      finish(getDataviewApi(plugin));
-    }, timeoutMs);
+    const eventRef = plugin.app.workspace.on(DATAVIEW.apiReadyEvent as never, handler);
+    plugin.registerEvent(eventRef);
+    timer = window.setTimeout(() => finish(getDataviewApi(plugin)), timeoutMs);
+    plugin.register(() => finish(null));
   });
 }
 
@@ -87,13 +88,27 @@ export async function resolveDataviewEvents(
       type: get("type") ? String(get("type")) : undefined,
       note: get("note") ? String(get("note")) : undefined,
       wiki: encodeEventLink({
-        url: get("url"),
-        vault_link: get("vault_link"),
-        wiki: get("wiki")
+        url: stringifyLink(get("url")),
+        vault_link: stringifyLink(get("vault_link")),
+        wiki: stringifyLink(get("wiki"))
       }),
       weight: get("weight") != null ? Number(get("weight")) : undefined
     };
   });
+}
+
+function stringifyLink(value: unknown): string | undefined {
+  if (value == null) return undefined;
+  if (typeof value === "string") {
+    const m = value.match(/^\[\[([^\]]+)\]\]$/);
+    return m ? m[1] : value;
+  }
+  const v = value as { path?: unknown; display?: unknown; subpath?: unknown };
+  if (typeof v.path === "string") {
+    const sub = typeof v.subpath === "string" ? v.subpath : "";
+    return `${v.path}${sub}`;
+  }
+  return String(value);
 }
 
 function stringifyDate(value: unknown): string {
