@@ -29,7 +29,6 @@ export async function renderBlock(
   try {
     parsed = parseOptions(source);
   } catch (err: unknown) {
-    console.error("[daytiles] parse error", err);
     return renderError(el, "daytiles: failed to parse block", String((err as Error).message));
   }
 
@@ -37,7 +36,6 @@ export async function renderBlock(
   try {
     built = buildOptions(parsed.raw);
   } catch (err: unknown) {
-    console.error("[daytiles] options error", err, parsed.raw);
     return renderError(el, "daytiles: invalid options", String((err as Error).message));
   }
 
@@ -81,28 +79,16 @@ export async function renderBlock(
   svg.setAttribute("xmlns", SVG_NS);
   el.appendChild(svg);
 
-  console.log("[daytiles] block starting", {
-    inlineEvents: built.inlineEvents.length,
-    eventsSource: built.eventsSource?.kind ?? "inline",
-    merged: simplify(merged)
-  });
-
   const doRender = () => {
     try {
       dt.render(svg);
     } catch (err: unknown) {
-      console.error("[daytiles] render error", err, merged);
       renderError(el, "daytiles: render failed", String((err as Error).message));
       return;
     }
     fixupSvgDimensions(svg);
     const w = svg.getAttribute("width");
     const h = svg.getAttribute("height");
-    console.log("[daytiles] rendered", {
-      childCount: svg.childElementCount,
-      width: w,
-      height: h
-    });
     if (svg.childElementCount === 0) {
       renderError(
         el,
