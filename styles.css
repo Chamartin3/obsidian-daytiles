@@ -1,0 +1,28 @@
+/* daytiles obsidian plugin styles */
+
+.daytiles-block {
+  display: block;
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+
+.daytiles-block svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.daytiles-error {
+  border-left: 3px solid var(--color-red, #e25);
+  padding: 0.5em 0.75em;
+  background: var(--background-secondary);
+  color: var(--text-error, #e25);
+  font-family: var(--font-monospace);
+  font-size: 0.85em;
+  white-space: pre-wrap;
+}
+
+.daytiles-hint {
+  color: var(--text-muted);
+  font-size: 0.85em;
+  margin-top: 0.25em;
+}
