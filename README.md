@@ -21,7 +21,7 @@ and colors declaratively, drop events inline, or pull them live from a
 
 ## Install
 
-### Manual install (until listed in the community browser)
+### Manual install
 
 1. Download `main.js`, `manifest.json`, and `styles.css` from the latest
    [release](https://github.com/Chamartin3/obsidian-daytiles/releases).
@@ -48,103 +48,106 @@ events:
 
 ## Options
 
-### Layout
+### Display — layout, sizing, shape
 
-| Key              | Default      | Notes                                  |
-| ---------------- | ------------ | -------------------------------------- |
-| `layout`         | `month`      | `month` \| `week` \| `weekday` \| `custom` |
-| `startDate`      | year start   | ISO date                               |
-| `endDate`        | year end     | ISO date                               |
-| `daysPerRow`     | `21`         | only for `layout: custom`              |
-| `startDayOfWeek` | `1`          | `0` = Sunday, `1` = Monday             |
-| `showLabels`     | `false`      | render row labels                      |
-| `labelWidth`     | `56`         | px reserved for labels                 |
+How days are arranged on screen.
 
-### Tile sizing & shape
+![Month, week, weekday, and custom layouts side by side](assets/layouts-overview.png)
 
-| Key       | Default | Notes                                          |
-| --------- | ------- | ---------------------------------------------- |
-| `daySize` | `16`    | tile edge in px                                |
-| `gap`     | `4`     | spacing between tiles                          |
-| `shape`   | `rect`  | `rect` \| `rounded` \| `circle` \| `diamond`  |
+| Key              | Default    | Notes                                            |
+| ---------------- | ---------- | ------------------------------------------------ |
+| `layout`         | `month`    | `month` \| `week` \| `weekday` \| `custom`       |
+| `startDate`      | year start | ISO date                                         |
+| `endDate`        | year end   | ISO date                                         |
+| `daysPerRow`     | `21`       | only for `layout: custom`                        |
+| `startDayOfWeek` | `1`        | `0` = Sunday, `1` = Monday                       |
+| `showLabels`     | `false`    | render row labels                                |
+| `labelWidth`     | `56`       | px reserved for labels                           |
+| `daySize`        | `16`       | tile edge in px                                  |
+| `gap`            | `4`        | spacing between tiles                            |
+| `shape`          | `rect`     | `rect` \| `rounded` \| `circle` \| `diamond`     |
 
-### Colors
+### Theming — colors and highlights
+
+How the tiles are tinted. Every color key lives under `colors:`.
 
 ```yaml
 colors:
-  current: "#FFD700"
-  dayColor: "#eee"
-  pastFade: 0.6
-  futureFade: 1
+  dayColor: "#eee"           # base tile color
+  current: "#FFD700"         # today's tile
   highlightCurrent: true
+  pastFade: 0.6              # opacity for past days
+  futureFade: 1              # opacity for future days
   defaultEventColor: "#ff5577"
-  eventTypeColors:
-    work: "#3c3b6e"
-    vacation: "#34c759"
-  alternation:
-    mode: month        # none | day | week | month | year | custom
+  alternation:               # banded background by day / week / month / year
+    mode: month              # none | day | week | month | year | custom
     color: "#d2f0fa"
-    size: 7            # only for mode: custom
-  highlight:
+    size: 7                  # only for mode: custom
+  highlight:                 # paint specific weekdays or months
     weekdays: { 0: "#fee", 6: "#fee" }
     months:   { 11: "#fef" }
+  heatmap: false             # tint tiles by accumulated event weight
+  heatmapLow: 0.2
+  heatmapHigh: 0.75
 ```
 
-### Inline events
+### Events — inline, types, sources, click actions
+
+What gets drawn on top of the tiles.
+
+**Inline events.** Each entry needs a `start`; everything else is optional.
 
 ```yaml
 events:
-  - { start: 2026-03-15, color: "#f55", note: Launch }
+  - { start: 2026-03-15, note: Launch }
   - { start: 2026-04-01, end: 2026-04-07, type: vacation }
-  - { start: 2026-05-20, note: Demo, wiki: "Demos/Demo May" }
+  - { start: 2026-05-20, type: demo, note: Demo, vault_link: "Demos/Demo May" }
 ```
 
-If `wiki` is set, clicking the tile opens that internal link.
+**Event types.** Events don't carry hex colors — they carry a `type`, and the
+type is looked up in `colors.eventTypeColors`:
 
-### Dataview source
+```yaml
+colors:
+  eventTypeColors:
+    work:     "#3c3b6e"
+    vacation: "#34c759"
+```
 
-Requires the Dataview plugin to be installed and enabled.
+Untyped events fall back to `colors.defaultEventColor`.
+
+**Dataview source.** Pull events from any DQL `TABLE` query. Requires the
+Dataview plugin.
 
 ```yaml
 events:
   source: dataview
   query: |
-    TABLE WITHOUT ID file.day AS start, color, type, note
+    TABLE WITHOUT ID file.day AS start, type, note
     FROM "Journal"
     WHERE date
   fields:
     start: start
-    color: color
-    type: type
-    note: note
+    type:  type
+    note:  note
 ```
 
-The `fields` map renames result headers into daytiles event fields. `start` is
-required; the rest are optional.
+`fields` maps Dataview column names to event keys. Only `start` is required.
 
-## Examples vault — copy-paste presets
+**Click actions.** Events can carry a link target. Clicking the tile opens it.
 
-The `examples-vault/` folder in this repo is a self-contained Obsidian vault
-full of ready-made blocks you can drop straight into your own notes. Every
-layout, shape, event style, heatmap, action link, and Dataview source is in
-there as a working block — open it, copy the one that matches what you want,
-paste it into your vault, and tweak from there.
+| Field        | Opens                                                 |
+| ------------ | ----------------------------------------------------- |
+| `vault_link` | a note in this vault (`[[wiki link]]` syntax, with `#heading` supported) |
+| `url`        | an external URL in the browser                        |
 
-What's inside:
+If both are set, `url` wins.
 
-- `Daytiles-Showcase.md` — the catalog of presets, grouped by layout, shape,
-  and event source.
-- `Journal/` — sample daily notes with frontmatter so the Dataview presets
-  return real results.
-- `.obsidian/community-plugins.json` pre-configured to enable Daytiles and
-  Dataview.
+## Examples vault
 
-To open it:
-
-1. Build the plugin (`npm run build`).
-2. Copy or symlink `dist/` into `examples-vault/.obsidian/plugins/daytiles/`.
-3. Open `examples-vault/` in Obsidian and trust the vault.
-4. Open `Daytiles-Showcase.md` and start copying blocks.
+See [`examples-vault/`](examples-vault) for a ready-to-open Obsidian vault
+with working presets for every layout, shape, theming variation, and event
+source — copy any block straight into your own notes.
 
 ## Settings
 
