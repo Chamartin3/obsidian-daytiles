@@ -1,9 +1,11 @@
-import { MarkdownRenderChild, type MarkdownPostProcessorContext, type Plugin } from "obsidian";
+import { MarkdownRenderChild, type MarkdownPostProcessorContext } from "obsidian";
+import type DaytilesPlugin from "../main";
 import { Daytiles } from "@daytiles/daytiles";
 import { parseOptions } from "./parseOptions";
 import { buildOptions } from "./buildOptions";
 import { renderError } from "./errors";
 import { resolveDataviewEvents } from "./dataview";
+import { mergeWithDefaults } from "./settings";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -11,7 +13,7 @@ export async function renderBlock(
   source: string,
   el: HTMLElement,
   ctx: MarkdownPostProcessorContext,
-  plugin: Plugin,
+  plugin: DaytilesPlugin,
 ): Promise<void> {
   el.empty();
   el.addClass("daytiles-block");
@@ -33,10 +35,14 @@ export async function renderBlock(
   const child = new MarkdownRenderChild(el);
   ctx.addChild(child);
 
-  const dt = new Daytiles(built.options);
+  const merged = mergeWithDefaults(plugin.settings.defaults, built.options);
+  const dt = new Daytiles(merged);
   if (built.inlineEvents.length) dt.addEvents(built.inlineEvents);
 
   if (built.eventsSource?.kind === "dataview") {
+    if (!plugin.settings.enableDataview) {
+      return renderError(el, "daytiles: dataview source disabled in settings");
+    }
     try {
       const events = await resolveDataviewEvents(plugin, built.eventsSource, ctx.sourcePath);
       if (events.length) dt.addEvents(events);

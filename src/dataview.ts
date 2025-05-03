@@ -1,4 +1,4 @@
-import type { Plugin } from "obsidian";
+import type DaytilesPlugin from "../main";
 import type { DaytilesEventInput } from "@daytiles/daytiles";
 
 interface DataviewQueryResult {
@@ -26,7 +26,7 @@ const DEFAULT_FIELDS = {
   wiki: "wiki"
 };
 
-export function getDataviewApi(plugin: Plugin): DataviewApi | null {
+export function getDataviewApi(plugin: DaytilesPlugin): DataviewApi | null {
   const app = plugin.app as unknown as {
     plugins?: { plugins?: Record<string, { api?: DataviewApi }> };
   };
@@ -34,7 +34,7 @@ export function getDataviewApi(plugin: Plugin): DataviewApi | null {
 }
 
 export async function resolveDataviewEvents(
-  plugin: Plugin,
+  plugin: DaytilesPlugin,
   spec: DataviewSourceSpec,
   sourcePath: string,
 ): Promise<DaytilesEventInput[]> {
