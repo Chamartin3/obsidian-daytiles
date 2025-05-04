@@ -8,7 +8,8 @@
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && node scripts/copy-meta.mjs",
     "copy-meta": "node scripts/copy-meta.mjs",
     "test": "jest",
-    "verify:examples": "node scripts/verify-examples.mjs examples-vault"
+    "verify:examples": "node scripts/verify-examples.mjs examples-vault",
+    "version": "node version-bump.mjs && git add manifest.json versions.json"
   },
   "keywords": [
     "obsidian",
