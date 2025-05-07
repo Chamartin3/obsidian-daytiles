@@ -6,6 +6,7 @@ import { buildOptions } from "./buildOptions";
 import { renderError } from "./errors";
 import { resolveDataviewEvents } from "./dataview";
 import { mergeWithDefaults } from "./settings";
+import { paletteFor } from "./theme";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -35,7 +36,12 @@ export async function renderBlock(
   const child = new MarkdownRenderChild(el);
   ctx.addChild(child);
 
-  const merged = mergeWithDefaults(plugin.settings.defaults, built.options);
+  const palette = paletteFor(plugin.settings.themeMode);
+  const themed = {
+    ...plugin.settings.defaults,
+    colors: { ...palette, ...(plugin.settings.defaults.colors ?? {}) }
+  };
+  const merged = mergeWithDefaults(themed, built.options);
   const dt = new Daytiles(merged);
   if (built.inlineEvents.length) dt.addEvents(built.inlineEvents);
 
