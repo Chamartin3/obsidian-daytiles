@@ -2,6 +2,7 @@ import { Plugin } from "obsidian";
 import { registerCodeBlock } from "./src/codeBlockProcessor";
 import { DEFAULT_SETTINGS, type DaytilesPluginSettings } from "./src/settings";
 import { DaytilesSettingTab } from "./src/settingsTab";
+import { registerInsertCommand } from "./src/insertCommand";
 
 export default class DaytilesPlugin extends Plugin {
   settings: DaytilesPluginSettings = DEFAULT_SETTINGS;
@@ -10,6 +11,7 @@ export default class DaytilesPlugin extends Plugin {
     await this.loadSettings();
     this.addSettingTab(new DaytilesSettingTab(this.app, this));
     registerCodeBlock(this);
+    registerInsertCommand(this);
   }
 
   async onunload(): Promise<void> {
