@@ -43,6 +43,11 @@ export async function renderBlock(
   };
   const merged = mergeWithDefaults(themed, built.options);
   const dt = new Daytiles(merged);
+  dt.onTileClick(({ event }) => {
+    if (event?.wiki) {
+      plugin.app.workspace.openLinkText(event.wiki, ctx.sourcePath, false);
+    }
+  });
   if (built.inlineEvents.length) dt.addEvents(built.inlineEvents);
 
   if (built.eventsSource?.kind === "dataview") {
