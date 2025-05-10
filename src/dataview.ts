@@ -33,12 +33,31 @@ export function getDataviewApi(plugin: DaytilesPlugin): DataviewApi | null {
   return app.plugins?.plugins?.["dataview"]?.api ?? null;
 }
 
+export function waitForDataview(plugin: DaytilesPlugin, timeoutMs = 4000): Promise<DataviewApi | null> {
+  const direct = getDataviewApi(plugin);
+  if (direct) return Promise.resolve(direct);
+  return new Promise((resolve) => {
+    let resolved = false;
+    const finish = (api: DataviewApi | null) => {
+      if (resolved) return;
+      resolved = true;
+      resolve(api);
+    };
+    const handler = () => finish(getDataviewApi(plugin));
+    plugin.app.workspace.on("dataview:api-ready" as never, handler);
+    setTimeout(() => {
+      plugin.app.workspace.off("dataview:api-ready" as never, handler);
+      finish(getDataviewApi(plugin));
+    }, timeoutMs);
+  });
+}
+
 export async function resolveDataviewEvents(
   plugin: DaytilesPlugin,
   spec: DataviewSourceSpec,
   sourcePath: string,
 ): Promise<DaytilesEventInput[]> {
-  const api = getDataviewApi(plugin);
+  const api = await waitForDataview(plugin);
   if (!api) {
     throw new Error("Dataview plugin is not installed or not enabled");
   }
