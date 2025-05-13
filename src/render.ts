@@ -68,6 +68,12 @@ export async function renderBlock(
   svg.setAttribute("xmlns", SVG_NS);
   el.appendChild(svg);
 
+  console.log("[daytiles] block starting", {
+    inlineEvents: built.inlineEvents.length,
+    eventsSource: built.eventsSource?.kind ?? "inline",
+    merged: simplify(merged)
+  });
+
   const doRender = () => {
     try {
       dt.render(svg);
@@ -77,12 +83,25 @@ export async function renderBlock(
       return;
     }
     fixupSvgDimensions(svg);
+    const w = svg.getAttribute("width");
+    const h = svg.getAttribute("height");
+    console.log("[daytiles] rendered", {
+      childCount: svg.childElementCount,
+      width: w,
+      height: h
+    });
     if (svg.childElementCount === 0) {
       renderError(
         el,
         "daytiles: render produced an empty SVG",
         "Check that startDate <= endDate and that layout/options are valid. " +
           `parsed: ${JSON.stringify(simplify(merged))}`,
+      );
+    } else if (!w || !h || w === "0" || h === "0") {
+      renderError(
+        el,
+        "daytiles: SVG has zero dimensions",
+        `${svg.childElementCount} children drawn but bbox came back empty. parsed: ${JSON.stringify(simplify(merged))}`,
       );
     }
   };
@@ -98,26 +117,71 @@ function fixupSvgDimensions(svg: SVGSVGElement): void {
   const w = parseFloat(svg.getAttribute("width") ?? "0");
   const h = parseFloat(svg.getAttribute("height") ?? "0");
   if (w > 0 && h > 0) return;
+
   let maxX = 0;
   let maxY = 0;
-  for (const node of Array.from(svg.querySelectorAll<SVGGraphicsElement>("rect, circle, polygon, path, text"))) {
-    try {
-      const b = node.getBBox();
-      const right = b.x + b.width;
-      const bottom = b.y + b.height;
-      if (right > maxX) maxX = right;
-      if (bottom > maxY) maxY = bottom;
-    } catch {
-      /* ignore individual nodes that aren't laid out */
-    }
+  const bump = (right: number, bottom: number): void => {
+    if (right > maxX) maxX = right;
+    if (bottom > maxY) maxY = bottom;
+  };
+
+  for (const node of Array.from(svg.children) as SVGElement[]) {
+    visitForBounds(node, bump);
   }
+
   if (maxX > 0 && maxY > 0) {
-    const W = Math.ceil(maxX);
-    const H = Math.ceil(maxY);
+    const W = Math.ceil(maxX) + 1;
+    const H = Math.ceil(maxY) + 1;
     svg.setAttribute("width", String(W));
     svg.setAttribute("height", String(H));
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    svg.style.maxWidth = "100%";
+    svg.style.height = "auto";
   }
+}
+
+function visitForBounds(node: SVGElement, bump: (r: number, b: number) => void): void {
+  const tag = node.tagName.toLowerCase();
+  if (tag === "g" || tag === "svg") {
+    for (const child of Array.from(node.children) as SVGElement[]) {
+      visitForBounds(child, bump);
+    }
+    return;
+  }
+  if (tag === "rect") {
+    const x = num(node.getAttribute("x"));
+    const y = num(node.getAttribute("y"));
+    const w = num(node.getAttribute("width"));
+    const h = num(node.getAttribute("height"));
+    bump(x + w, y + h);
+    return;
+  }
+  if (tag === "circle") {
+    const cx = num(node.getAttribute("cx"));
+    const cy = num(node.getAttribute("cy"));
+    const r = num(node.getAttribute("r"));
+    bump(cx + r, cy + r);
+    return;
+  }
+  if (tag === "polygon" || tag === "polyline") {
+    const points = (node.getAttribute("points") ?? "").trim().split(/\s+/);
+    for (const p of points) {
+      const [px, py] = p.split(",").map(num);
+      bump(px ?? 0, py ?? 0);
+    }
+    return;
+  }
+  if (tag === "text") {
+    const x = num(node.getAttribute("x"));
+    const y = num(node.getAttribute("y"));
+    bump(x + 40, y + 8); // text width is unknown; reserve a sensible margin
+    return;
+  }
+}
+
+function num(value: string | null | undefined): number {
+  const n = parseFloat(value ?? "0");
+  return Number.isFinite(n) ? n : 0;
 }
 
 function simplify(value: unknown, depth = 0): unknown {
