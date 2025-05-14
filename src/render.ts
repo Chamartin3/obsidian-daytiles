@@ -18,6 +18,9 @@ export async function renderBlock(
 ): Promise<void> {
   el.empty();
   el.addClass("daytiles-block");
+  el.style.padding = "0.6em";
+  el.style.borderRadius = "6px";
+  el.style.background = plugin.settings.background;
 
   let parsed;
   try {
@@ -44,6 +47,7 @@ export async function renderBlock(
     colors: { ...palette, ...(plugin.settings.defaults.colors ?? {}) }
   };
   const merged = mergeWithDefaults(themed, built.options);
+  if (built.background) el.style.background = built.background;
   const dt = new Daytiles(merged);
   dt.onTileClick(({ event }) => {
     if (event?.wiki) {
