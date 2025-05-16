@@ -27,12 +27,28 @@ export class DaytilesSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Block background")
-      .setDesc("CSS color behind the rendered SVG. Per-block override: `background: <color>`.")
-      .addColorPicker((c) =>
-        c.setValue(s.background).onChange(async (v) => {
-          s.background = v;
-          await save();
-        }),
+      .setDesc("Leave empty for transparent. Per-block override: `background: <css color>`.")
+      .addText((t) =>
+        t
+          .setPlaceholder("transparent")
+          .setValue(s.background)
+          .onChange(async (v) => {
+            s.background = v.trim();
+            await save();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Label text color")
+      .setDesc("Color for row labels. Empty inherits Obsidian's text color. Per-block override: `textColor: <css color>`.")
+      .addText((t) =>
+        t
+          .setPlaceholder("inherit")
+          .setValue(s.textColor)
+          .onChange(async (v) => {
+            s.textColor = v.trim();
+            await save();
+          }),
       );
 
     containerEl.createEl("h3", { text: "Layout" });

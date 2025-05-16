@@ -16,12 +16,15 @@ export interface BuiltBlock {
   inlineEvents: DaytilesEventInput[];
   eventsSource?: { kind: "dataview"; query: string; fields?: Record<string, string> };
   background?: string;
+  textColor?: string;
 }
 
 export function buildOptions(raw: Raw): BuiltBlock {
   const options: DaytilesOptions = {};
   let background: string | undefined;
   if ("background" in raw && raw.background) background = String(raw.background);
+  let textColor: string | undefined;
+  if ("textColor" in raw && raw.textColor) textColor = String(raw.textColor);
 
   if ("layout" in raw) options.layout = coerceLayout(raw.layout);
   if ("shape" in raw) options.shape = coerceShape(raw.shape);
@@ -61,7 +64,7 @@ export function buildOptions(raw: Raw): BuiltBlock {
     }
   }
 
-  return { options, inlineEvents, eventsSource, background };
+  return { options, inlineEvents, eventsSource, background, textColor };
 }
 
 function buildColors(raw: Raw): Partial<ColorSettings> {

@@ -11,6 +11,11 @@
   height: auto;
 }
 
+.daytiles-block svg text,
+.daytiles-block svg .row-label {
+  fill: var(--daytiles-text, var(--text-normal, currentColor));
+}
+
 .daytiles-error {
   border-left: 3px solid var(--color-red, #e25);
   padding: 0.5em 0.75em;

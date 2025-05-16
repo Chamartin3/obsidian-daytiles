@@ -4,6 +4,7 @@ import { AlternationMode } from "@daytiles/alternation";
 export interface DaytilesPluginSettings {
   defaults: DaytilesOptions;
   background: string;
+  textColor: string;
   enableDataview: boolean;
   themeMode: "auto" | "light" | "dark";
 }
@@ -15,16 +16,17 @@ export const DEFAULT_SETTINGS: DaytilesPluginSettings = {
     startDayOfWeek: 1,
     showLabels: false,
     colors: {
-      current: "#ffd54a",
-      dayColor: "#3a3a3a",
-      pastFade: 0.7,
+      current: "#ffcf3a",
+      dayColor: "#dcdcdc",
+      pastFade: 0.85,
       futureFade: 1,
       highlightCurrent: true,
       defaultEventColor: "#ff7799",
-      alternation: { mode: AlternationMode.Month, color: "#1d2a33", size: 7 }
+      alternation: { mode: AlternationMode.Month, color: "#f0f3f7", size: 7 }
     }
   },
-  background: "#1e1e1e",
+  background: "",
+  textColor: "",
   enableDataview: true,
   themeMode: "auto"
 };

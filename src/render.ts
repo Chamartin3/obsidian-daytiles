@@ -20,7 +20,8 @@ export async function renderBlock(
   el.addClass("daytiles-block");
   el.style.padding = "0.6em";
   el.style.borderRadius = "6px";
-  el.style.background = plugin.settings.background;
+  el.style.background = plugin.settings.background || "transparent";
+  if (plugin.settings.textColor) el.style.setProperty("--daytiles-text", plugin.settings.textColor);
 
   let parsed;
   try {
@@ -48,6 +49,7 @@ export async function renderBlock(
   };
   const merged = mergeWithDefaults(themed, built.options);
   if (built.background) el.style.background = built.background;
+  if (built.textColor) el.style.setProperty("--daytiles-text", built.textColor);
   const dt = new Daytiles(merged);
   dt.onTileClick(({ event }) => {
     if (event?.wiki) {
