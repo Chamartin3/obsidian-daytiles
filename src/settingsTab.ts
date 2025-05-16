@@ -1,5 +1,6 @@
 import { PluginSettingTab, Setting, type App } from "obsidian";
 import type DaytilesPlugin from "../main";
+import { AlternationMode } from "@daytiles/alternation";
 
 export class DaytilesSettingTab extends PluginSettingTab {
   plugin: DaytilesPlugin;
@@ -14,33 +15,44 @@ export class DaytilesSettingTab extends PluginSettingTab {
     containerEl.empty();
     containerEl.createEl("h2", { text: "Daytiles defaults" });
 
+    const s = this.plugin.settings;
+    const colors = (s.defaults.colors ??= {});
+    colors.alternation ??= { mode: AlternationMode.Month, color: "#1d2a33", size: 7 };
+
+    const save = () => this.plugin.saveSettings();
+    const num = (v: string, fb: number) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : fb;
+    };
+
     new Setting(containerEl)
-      .setName("Default day size (px)")
-      .setDesc("Tile edge size used when a block doesn't specify one.")
-      .addText((text) =>
-        text
-          .setValue(String(this.plugin.settings.defaults.daySize ?? 16))
-          .onChange(async (value) => {
-            const n = Number(value);
-            if (Number.isFinite(n)) {
-              this.plugin.settings.defaults.daySize = n;
-              await this.plugin.saveSettings();
-            }
-          }),
+      .setName("Block background")
+      .setDesc("CSS color behind the rendered SVG. Per-block override: `background: <color>`.")
+      .addColorPicker((c) =>
+        c.setValue(s.background).onChange(async (v) => {
+          s.background = v;
+          await save();
+        }),
+      );
+
+    containerEl.createEl("h3", { text: "Layout" });
+
+    new Setting(containerEl)
+      .setName("Day size (px)")
+      .addText((t) =>
+        t.setValue(String(s.defaults.daySize ?? 16)).onChange(async (v) => {
+          s.defaults.daySize = num(v, 16);
+          await save();
+        }),
       );
 
     new Setting(containerEl)
-      .setName("Default gap (px)")
-      .addText((text) =>
-        text
-          .setValue(String(this.plugin.settings.defaults.gap ?? 4))
-          .onChange(async (value) => {
-            const n = Number(value);
-            if (Number.isFinite(n)) {
-              this.plugin.settings.defaults.gap = n;
-              await this.plugin.saveSettings();
-            }
-          }),
+      .setName("Gap (px)")
+      .addText((t) =>
+        t.setValue(String(s.defaults.gap ?? 4)).onChange(async (v) => {
+          s.defaults.gap = num(v, 4);
+          await save();
+        }),
       );
 
     new Setting(containerEl)
@@ -50,35 +62,132 @@ export class DaytilesSettingTab extends PluginSettingTab {
         dd
           .addOption("0", "Sunday")
           .addOption("1", "Monday")
-          .setValue(String(this.plugin.settings.defaults.startDayOfWeek ?? 1))
-          .onChange(async (value) => {
-            this.plugin.settings.defaults.startDayOfWeek = Number(value);
-            await this.plugin.saveSettings();
+          .setValue(String(s.defaults.startDayOfWeek ?? 1))
+          .onChange(async (v) => {
+            s.defaults.startDayOfWeek = Number(v);
+            await save();
           }),
       );
 
     new Setting(containerEl)
+      .setName("Show row labels")
+      .addToggle((t) =>
+        t.setValue(s.defaults.showLabels ?? false).onChange(async (v) => {
+          s.defaults.showLabels = v;
+          await save();
+        }),
+      );
+
+    containerEl.createEl("h3", { text: "Default colors" });
+
+    new Setting(containerEl)
+      .setName("Day tile color")
+      .addColorPicker((c) =>
+        c.setValue(colors.dayColor ?? "#3a3a3a").onChange(async (v) => {
+          colors.dayColor = v;
+          await save();
+        }),
+      );
+
+    new Setting(containerEl)
+      .setName("Today highlight")
+      .addColorPicker((c) =>
+        c.setValue(colors.current ?? "#ffd54a").onChange(async (v) => {
+          colors.current = v;
+          await save();
+        }),
+      );
+
+    new Setting(containerEl)
+      .setName("Default event color")
+      .addColorPicker((c) =>
+        c.setValue(colors.defaultEventColor ?? "#ff7799").onChange(async (v) => {
+          colors.defaultEventColor = v;
+          await save();
+        }),
+      );
+
+    new Setting(containerEl)
+      .setName("Past fade")
+      .setDesc("Brightness multiplier for past days (0–1).")
+      .addText((t) =>
+        t.setValue(String(colors.pastFade ?? 0.7)).onChange(async (v) => {
+          colors.pastFade = num(v, 0.7);
+          await save();
+        }),
+      );
+
+    new Setting(containerEl)
+      .setName("Future fade")
+      .setDesc("Brightness multiplier for future days (0–1).")
+      .addText((t) =>
+        t.setValue(String(colors.futureFade ?? 1)).onChange(async (v) => {
+          colors.futureFade = num(v, 1);
+          await save();
+        }),
+      );
+
+    containerEl.createEl("h3", { text: "Alternation band" });
+
+    new Setting(containerEl)
+      .setName("Mode")
+      .addDropdown((dd) =>
+        dd
+          .addOption(AlternationMode.None, "None")
+          .addOption(AlternationMode.Day, "Day")
+          .addOption(AlternationMode.Week, "Week")
+          .addOption(AlternationMode.Month, "Month")
+          .addOption(AlternationMode.Year, "Year")
+          .addOption(AlternationMode.Custom, "Custom")
+          .setValue(colors.alternation!.mode)
+          .onChange(async (v) => {
+            colors.alternation!.mode = v as AlternationMode;
+            await save();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Alternation color")
+      .addColorPicker((c) =>
+        c.setValue(colors.alternation!.color).onChange(async (v) => {
+          colors.alternation!.color = v;
+          await save();
+        }),
+      );
+
+    new Setting(containerEl)
+      .setName("Alternation size")
+      .setDesc("Only used for `Custom` mode (days per band).")
+      .addText((t) =>
+        t.setValue(String(colors.alternation!.size ?? 7)).onChange(async (v) => {
+          colors.alternation!.size = num(v, 7);
+          await save();
+        }),
+      );
+
+    containerEl.createEl("h3", { text: "Integrations" });
+
+    new Setting(containerEl)
       .setName("Theme mode")
-      .setDesc("Picks default palette. 'Auto' follows Obsidian's theme.")
+      .setDesc("Auto picks light or dark palette from Obsidian's theme.")
       .addDropdown((dd) =>
         dd
           .addOption("auto", "Auto")
           .addOption("light", "Light")
           .addOption("dark", "Dark")
-          .setValue(this.plugin.settings.themeMode)
-          .onChange(async (value) => {
-            this.plugin.settings.themeMode = value as "auto" | "light" | "dark";
-            await this.plugin.saveSettings();
+          .setValue(s.themeMode)
+          .onChange(async (v) => {
+            s.themeMode = v as "auto" | "light" | "dark";
+            await save();
           }),
       );
 
     new Setting(containerEl)
       .setName("Enable Dataview event source")
-      .setDesc("Allow blocks to populate events from a Dataview query.")
       .addToggle((t) =>
-        t.setValue(this.plugin.settings.enableDataview).onChange(async (value) => {
-          this.plugin.settings.enableDataview = value;
-          await this.plugin.saveSettings();
+        t.setValue(s.enableDataview).onChange(async (v) => {
+          s.enableDataview = v;
+          await save();
         }),
       );
   }
