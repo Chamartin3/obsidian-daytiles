@@ -26,6 +26,7 @@
     "typescript": "^5.4.0"
   },
   "dependencies": {
+    "daytiles": "github:Chamartin3/daytiles#636a5f88fa0cbd05e9dcca39b1280b5c149c9039",
     "js-yaml": "^4.1.0"
   }
 }
