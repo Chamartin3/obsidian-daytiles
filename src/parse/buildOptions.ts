@@ -1,6 +1,6 @@
-import type { DaytilesOptions, DaytilesEventInput } from "@daytiles/daytiles";
-import type { ColorSettings, ColorHighlights } from "@daytiles/colors";
-import type { AlternationSettings } from "@daytiles/alternation";
+import type { DaytilesOptions, DaytilesEventInput } from "daytiles";
+import type { ColorSettings, ColorHighlights } from "daytiles";
+import type { AlternationSettings } from "daytiles";
 import {
   coerceLayout,
   coerceShape,
@@ -8,6 +8,7 @@ import {
   asNumber,
   asBoolean
 } from "./coerce";
+import { encodeEventLink } from "./eventLink";
 
 type Raw = Record<string, unknown>;
 
@@ -76,6 +77,9 @@ function buildColors(raw: Raw): Partial<ColorSettings> {
   if ("futureFade" in raw) colors.futureFade = asNumber(raw.futureFade, "colors.futureFade")!;
   if ("highlightCurrent" in raw)
     colors.highlightCurrent = asBoolean(raw.highlightCurrent, "colors.highlightCurrent")!;
+  if ("heatmap" in raw) colors.heatmap = asBoolean(raw.heatmap, "colors.heatmap")!;
+  if ("heatmapLow" in raw) colors.heatmapLow = asNumber(raw.heatmapLow, "colors.heatmapLow")!;
+  if ("heatmapHigh" in raw) colors.heatmapHigh = asNumber(raw.heatmapHigh, "colors.heatmapHigh")!;
   if ("defaultEventColor" in raw) colors.defaultEventColor = String(raw.defaultEventColor);
   if ("eventTypeColors" in raw && raw.eventTypeColors && typeof raw.eventTypeColors === "object") {
     colors.eventTypeColors = { ...(raw.eventTypeColors as Record<string, string>) };
@@ -112,9 +116,9 @@ function parseEvent(input: unknown): DaytilesEventInput {
   return {
     start: e.start as string,
     end: e.end as string | undefined,
-    color: e.color as string | undefined,
     type: e.type as string | undefined,
     note: e.note as string | undefined,
-    wiki: e.wiki as string | undefined
+    wiki: encodeEventLink(e),
+    weight: e.weight as number | undefined
   };
 }
