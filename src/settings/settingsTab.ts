@@ -1,6 +1,15 @@
 import { PluginSettingTab, Setting, type App } from "obsidian";
 import type DaytilesPlugin from "../main";
-import { AlternationMode } from "@daytiles/alternation";
+import { AlternationMode } from "daytiles";
+import {
+  DEFAULT_COLOR,
+  DARK_PALETTE,
+  DEFAULT_DISPLAY,
+  SETTINGS_PLACEHOLDER,
+  START_DAY_OF_WEEK,
+  THEME_MODE,
+  type ThemeMode
+} from "../constants";
 
 export class DaytilesSettingTab extends PluginSettingTab {
   plugin: DaytilesPlugin;
@@ -17,7 +26,11 @@ export class DaytilesSettingTab extends PluginSettingTab {
 
     const s = this.plugin.settings;
     const colors = (s.defaults.colors ??= {});
-    colors.alternation ??= { mode: AlternationMode.Month, color: "#1d2a33", size: 7 };
+    colors.alternation ??= {
+      mode: AlternationMode.Month,
+      color: DARK_PALETTE.alternationColor,
+      size: DEFAULT_DISPLAY.alternationSize
+    };
 
     const save = () => this.plugin.saveSettings();
     const num = (v: string, fb: number) => {
@@ -30,7 +43,7 @@ export class DaytilesSettingTab extends PluginSettingTab {
       .setDesc("Leave empty for transparent. Per-block override: `background: <css color>`.")
       .addText((t) =>
         t
-          .setPlaceholder("transparent")
+          .setPlaceholder(SETTINGS_PLACEHOLDER.background)
           .setValue(s.background)
           .onChange(async (v) => {
             s.background = v.trim();
@@ -43,7 +56,7 @@ export class DaytilesSettingTab extends PluginSettingTab {
       .setDesc("Color for row labels. Empty inherits Obsidian's text color. Per-block override: `textColor: <css color>`.")
       .addText((t) =>
         t
-          .setPlaceholder("inherit")
+          .setPlaceholder(SETTINGS_PLACEHOLDER.textColor)
           .setValue(s.textColor)
           .onChange(async (v) => {
             s.textColor = v.trim();
@@ -56,8 +69,8 @@ export class DaytilesSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Day size (px)")
       .addText((t) =>
-        t.setValue(String(s.defaults.daySize ?? 16)).onChange(async (v) => {
-          s.defaults.daySize = num(v, 16);
+        t.setValue(String(s.defaults.daySize ?? DEFAULT_DISPLAY.daySize)).onChange(async (v) => {
+          s.defaults.daySize = num(v, DEFAULT_DISPLAY.daySize);
           await save();
         }),
       );
@@ -65,8 +78,8 @@ export class DaytilesSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Gap (px)")
       .addText((t) =>
-        t.setValue(String(s.defaults.gap ?? 4)).onChange(async (v) => {
-          s.defaults.gap = num(v, 4);
+        t.setValue(String(s.defaults.gap ?? DEFAULT_DISPLAY.gap)).onChange(async (v) => {
+          s.defaults.gap = num(v, DEFAULT_DISPLAY.gap);
           await save();
         }),
       );
@@ -76,9 +89,9 @@ export class DaytilesSettingTab extends PluginSettingTab {
       .setDesc("0 = Sunday, 1 = Monday")
       .addDropdown((dd) =>
         dd
-          .addOption("0", "Sunday")
-          .addOption("1", "Monday")
-          .setValue(String(s.defaults.startDayOfWeek ?? 1))
+          .addOption(String(START_DAY_OF_WEEK.sunday), "Sunday")
+          .addOption(String(START_DAY_OF_WEEK.monday), "Monday")
+          .setValue(String(s.defaults.startDayOfWeek ?? DEFAULT_DISPLAY.startDayOfWeek))
           .onChange(async (v) => {
             s.defaults.startDayOfWeek = Number(v);
             await save();
@@ -88,7 +101,7 @@ export class DaytilesSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Show row labels")
       .addToggle((t) =>
-        t.setValue(s.defaults.showLabels ?? false).onChange(async (v) => {
+        t.setValue(s.defaults.showLabels ?? DEFAULT_DISPLAY.showLabels).onChange(async (v) => {
           s.defaults.showLabels = v;
           await save();
         }),
@@ -99,7 +112,7 @@ export class DaytilesSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Day tile color")
       .addColorPicker((c) =>
-        c.setValue(colors.dayColor ?? "#3a3a3a").onChange(async (v) => {
+        c.setValue(colors.dayColor ?? DEFAULT_COLOR.day).onChange(async (v) => {
           colors.dayColor = v;
           await save();
         }),
@@ -108,7 +121,7 @@ export class DaytilesSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Today highlight")
       .addColorPicker((c) =>
-        c.setValue(colors.current ?? "#ffd54a").onChange(async (v) => {
+        c.setValue(colors.current ?? DEFAULT_COLOR.current).onChange(async (v) => {
           colors.current = v;
           await save();
         }),
@@ -117,7 +130,7 @@ export class DaytilesSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Default event color")
       .addColorPicker((c) =>
-        c.setValue(colors.defaultEventColor ?? "#ff7799").onChange(async (v) => {
+        c.setValue(colors.defaultEventColor ?? DEFAULT_COLOR.defaultEvent).onChange(async (v) => {
           colors.defaultEventColor = v;
           await save();
         }),
@@ -127,8 +140,8 @@ export class DaytilesSettingTab extends PluginSettingTab {
       .setName("Past fade")
       .setDesc("Brightness multiplier for past days (0–1).")
       .addText((t) =>
-        t.setValue(String(colors.pastFade ?? 0.7)).onChange(async (v) => {
-          colors.pastFade = num(v, 0.7);
+        t.setValue(String(colors.pastFade ?? DEFAULT_DISPLAY.pastFade)).onChange(async (v) => {
+          colors.pastFade = num(v, DEFAULT_DISPLAY.pastFade);
           await save();
         }),
       );
@@ -137,8 +150,8 @@ export class DaytilesSettingTab extends PluginSettingTab {
       .setName("Future fade")
       .setDesc("Brightness multiplier for future days (0–1).")
       .addText((t) =>
-        t.setValue(String(colors.futureFade ?? 1)).onChange(async (v) => {
-          colors.futureFade = num(v, 1);
+        t.setValue(String(colors.futureFade ?? DEFAULT_DISPLAY.futureFade)).onChange(async (v) => {
+          colors.futureFade = num(v, DEFAULT_DISPLAY.futureFade);
           await save();
         }),
       );
@@ -175,8 +188,8 @@ export class DaytilesSettingTab extends PluginSettingTab {
       .setName("Alternation size")
       .setDesc("Only used for `Custom` mode (days per band).")
       .addText((t) =>
-        t.setValue(String(colors.alternation!.size ?? 7)).onChange(async (v) => {
-          colors.alternation!.size = num(v, 7);
+        t.setValue(String(colors.alternation!.size ?? DEFAULT_DISPLAY.alternationSize)).onChange(async (v) => {
+          colors.alternation!.size = num(v, DEFAULT_DISPLAY.alternationSize);
           await save();
         }),
       );
@@ -188,12 +201,12 @@ export class DaytilesSettingTab extends PluginSettingTab {
       .setDesc("Auto picks light or dark palette from Obsidian's theme.")
       .addDropdown((dd) =>
         dd
-          .addOption("auto", "Auto")
-          .addOption("light", "Light")
-          .addOption("dark", "Dark")
+          .addOption(THEME_MODE.auto, "Auto")
+          .addOption(THEME_MODE.light, "Light")
+          .addOption(THEME_MODE.dark, "Dark")
           .setValue(s.themeMode)
           .onChange(async (v) => {
-            s.themeMode = v as "auto" | "light" | "dark";
+            s.themeMode = v as ThemeMode;
             await save();
           }),
       );

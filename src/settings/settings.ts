@@ -1,34 +1,18 @@
-import type { DaytilesOptions } from "@daytiles/daytiles";
-import { AlternationMode } from "@daytiles/alternation";
+import type { DaytilesOptions } from "daytiles";
+import { DEFAULT_CALENDAR_CONFIG } from "./defaults";
+import { DEFAULT_PLUGIN_SETTINGS, type ThemeMode } from "../constants";
 
 export interface DaytilesPluginSettings {
   defaults: DaytilesOptions;
   background: string;
   textColor: string;
   enableDataview: boolean;
-  themeMode: "auto" | "light" | "dark";
+  themeMode: ThemeMode;
 }
 
 export const DEFAULT_SETTINGS: DaytilesPluginSettings = {
-  defaults: {
-    daySize: 16,
-    gap: 4,
-    startDayOfWeek: 1,
-    showLabels: false,
-    colors: {
-      current: "#ffcf3a",
-      dayColor: "#dcdcdc",
-      pastFade: 0.85,
-      futureFade: 1,
-      highlightCurrent: true,
-      defaultEventColor: "#ff7799",
-      alternation: { mode: AlternationMode.Month, color: "#f0f3f7", size: 7 }
-    }
-  },
-  background: "",
-  textColor: "",
-  enableDataview: true,
-  themeMode: "auto"
+  defaults: DEFAULT_CALENDAR_CONFIG,
+  ...DEFAULT_PLUGIN_SETTINGS
 };
 
 export function mergeWithDefaults(
