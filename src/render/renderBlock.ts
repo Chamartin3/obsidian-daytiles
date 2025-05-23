@@ -1,12 +1,14 @@
 import { MarkdownRenderChild, type MarkdownPostProcessorContext } from "obsidian";
 import type DaytilesPlugin from "../main";
-import { Daytiles } from "@daytiles/daytiles";
-import { parseOptions } from "./parseOptions";
-import { buildOptions } from "./buildOptions";
+import { Daytiles } from "daytiles";
+import { parseOptions } from "../parse/parseOptions";
+import { buildOptions } from "../parse/buildOptions";
 import { renderError } from "./errors";
-import { resolveDataviewEvents } from "./dataview";
-import { mergeWithDefaults } from "./settings";
+import { resolveDataviewEvents } from "../sources/dataview";
+import { mergeWithDefaults } from "../settings/settings";
 import { paletteFor } from "./theme";
+import { decodeEventLink } from "../parse/eventLink";
+import { BLOCK_FRAME, CSS_CLASS, CSS_VAR, EVENT_LINK_KIND, EVENT_SOURCE_KIND } from "../constants";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -17,11 +19,11 @@ export async function renderBlock(
   plugin: DaytilesPlugin,
 ): Promise<void> {
   el.empty();
-  el.addClass("daytiles-block");
-  el.style.padding = "0.6em";
-  el.style.borderRadius = "6px";
-  el.style.background = plugin.settings.background || "transparent";
-  if (plugin.settings.textColor) el.style.setProperty("--daytiles-text", plugin.settings.textColor);
+  el.addClass(CSS_CLASS.block);
+  el.style.padding = BLOCK_FRAME.padding;
+  el.style.borderRadius = BLOCK_FRAME.borderRadius;
+  el.style.background = plugin.settings.background || BLOCK_FRAME.background;
+  if (plugin.settings.textColor) el.style.setProperty(CSS_VAR.textColor, plugin.settings.textColor);
 
   let parsed;
   try {
@@ -49,16 +51,21 @@ export async function renderBlock(
   };
   const merged = mergeWithDefaults(themed, built.options);
   if (built.background) el.style.background = built.background;
-  if (built.textColor) el.style.setProperty("--daytiles-text", built.textColor);
+  if (built.textColor) el.style.setProperty(CSS_VAR.textColor, built.textColor);
   const dt = new Daytiles(merged);
-  dt.onTileClick(({ event }) => {
-    if (event?.wiki) {
-      plugin.app.workspace.openLinkText(event.wiki, ctx.sourcePath, false);
+  dt.onTileClick(({ events }) => {
+    const encoded = events.find((e) => e.wiki)?.wiki;
+    const link = decodeEventLink(encoded);
+    if (!link) return;
+    if (link.kind === EVENT_LINK_KIND.url) {
+      window.open(link.target, "_blank", "noopener,noreferrer");
+    } else {
+      plugin.app.workspace.openLinkText(link.target, ctx.sourcePath, false);
     }
   });
   if (built.inlineEvents.length) dt.addEvents(built.inlineEvents);
 
-  if (built.eventsSource?.kind === "dataview") {
+  if (built.eventsSource?.kind === EVENT_SOURCE_KIND.dataview) {
     if (!plugin.settings.enableDataview) {
       return renderError(el, "daytiles: dataview source disabled in settings");
     }
