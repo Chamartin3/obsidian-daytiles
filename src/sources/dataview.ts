@@ -1,5 +1,7 @@
 import type DaytilesPlugin from "../main";
-import type { DaytilesEventInput } from "@daytiles/daytiles";
+import type { DaytilesEventInput } from "daytiles";
+import { encodeEventLink } from "../parse/eventLink";
+import { DATAVIEW, DATAVIEW_FIELD, EVENT_SOURCE_KIND } from "../constants";
 
 interface DataviewQueryResult {
   successful: boolean;
@@ -12,25 +14,18 @@ interface DataviewApi {
 }
 
 interface DataviewSourceSpec {
-  kind: "dataview";
+  kind: typeof EVENT_SOURCE_KIND.dataview;
   query: string;
   fields?: Record<string, string>;
 }
 
-const DEFAULT_FIELDS = {
-  start: "start",
-  end: "end",
-  color: "color",
-  type: "type",
-  note: "note",
-  wiki: "wiki"
-};
+const DEFAULT_FIELDS = DATAVIEW_FIELD;
 
 export function getDataviewApi(plugin: DaytilesPlugin): DataviewApi | null {
   const app = plugin.app as unknown as {
     plugins?: { plugins?: Record<string, { api?: DataviewApi }> };
   };
-  return app.plugins?.plugins?.["dataview"]?.api ?? null;
+  return app.plugins?.plugins?.[DATAVIEW.pluginId]?.api ?? null;
 }
 
 export function waitForDataview(plugin: DaytilesPlugin, timeoutMs = 4000): Promise<DataviewApi | null> {
@@ -44,9 +39,9 @@ export function waitForDataview(plugin: DaytilesPlugin, timeoutMs = 4000): Promi
       resolve(api);
     };
     const handler = () => finish(getDataviewApi(plugin));
-    plugin.app.workspace.on("dataview:api-ready" as never, handler);
+    plugin.app.workspace.on(DATAVIEW.apiReadyEvent as never, handler);
     setTimeout(() => {
-      plugin.app.workspace.off("dataview:api-ready" as never, handler);
+      plugin.app.workspace.off(DATAVIEW.apiReadyEvent as never, handler);
       finish(getDataviewApi(plugin));
     }, timeoutMs);
   });
@@ -89,10 +84,14 @@ export async function resolveDataviewEvents(
     return {
       start: stringifyDate(start),
       end: get("end") ? stringifyDate(get("end")) : undefined,
-      color: get("color") ? String(get("color")) : undefined,
       type: get("type") ? String(get("type")) : undefined,
       note: get("note") ? String(get("note")) : undefined,
-      wiki: get("wiki") ? String(get("wiki")) : undefined
+      wiki: encodeEventLink({
+        url: get("url"),
+        vault_link: get("vault_link"),
+        wiki: get("wiki")
+      }),
+      weight: get("weight") != null ? Number(get("weight")) : undefined
     };
   });
 }
