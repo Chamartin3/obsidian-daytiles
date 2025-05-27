@@ -1,8 +1,8 @@
 import { Plugin } from "obsidian";
-import { registerCodeBlock } from "./src/codeBlockProcessor";
-import { DEFAULT_SETTINGS, type DaytilesPluginSettings } from "./src/settings";
-import { DaytilesSettingTab } from "./src/settingsTab";
-import { registerInsertCommand } from "./src/insertCommand";
+import { registerCodeBlock } from "./render/codeBlockProcessor";
+import { DEFAULT_SETTINGS, type DaytilesPluginSettings } from "./settings/settings";
+import { DaytilesSettingTab } from "./settings/settingsTab";
+import { registerInsertCommand } from "./commands/insertCommand";
 
 export default class DaytilesPlugin extends Plugin {
   settings: DaytilesPluginSettings = DEFAULT_SETTINGS;
@@ -14,9 +14,6 @@ export default class DaytilesPlugin extends Plugin {
     registerInsertCommand(this);
   }
 
-  async onunload(): Promise<void> {
-    /* no-op: registrations are torn down by Obsidian */
-  }
 
   async loadSettings(): Promise<void> {
     const data = (await this.loadData()) as Partial<DaytilesPluginSettings> | null;
