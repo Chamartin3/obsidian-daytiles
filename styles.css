@@ -1,22 +1,22 @@
 /* daytiles obsidian plugin styles */
 
-.daytiles-block {
+.DayTilesContainer {
   display: block;
   overflow-x: auto;
   margin: 0.5em 0;
 }
 
-.daytiles-block svg {
+.DayTilesContainer svg {
   max-width: 100%;
   height: auto;
 }
 
-.daytiles-block svg text,
-.daytiles-block svg .row-label {
-  fill: var(--daytiles-text, var(--text-normal, currentColor));
+.DayTilesContainer svg text,
+.DayTilesContainer svg .DayTiles--rowLabel {
+  fill: var(--DayTiles-text, var(--text-normal, currentColor));
 }
 
-.daytiles-error {
+.DayTiles--error {
   border-left: 3px solid var(--color-red, #e25);
   padding: 0.5em 0.75em;
   background: var(--background-secondary);
@@ -26,7 +26,7 @@
   white-space: pre-wrap;
 }
 
-.daytiles-hint {
+.DayTiles--hint {
   color: var(--text-muted);
   font-size: 0.85em;
   margin-top: 0.25em;
