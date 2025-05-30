@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && node scripts/copy-meta.mjs",
-    "copy-meta": "node scripts/copy-meta.mjs"
+    "copy-meta": "node scripts/copy-meta.mjs",
+    "test": "jest"
   },
   "keywords": [
     "obsidian",
@@ -17,11 +18,14 @@
   "author": "omi",
   "license": "MIT",
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.0.0",
     "builtin-modules": "^3.3.0",
     "esbuild": "^0.20.0",
+    "jest": "^30.4.2",
     "obsidian": "latest",
+    "ts-jest": "^29.4.9",
     "tslib": "^2.6.0",
     "typescript": "^5.4.0"
   },
