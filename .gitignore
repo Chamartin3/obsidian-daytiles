@@ -6,3 +6,4 @@ dist/
 .vscode/
 data.json
 workdir/
+tests/.cache/
