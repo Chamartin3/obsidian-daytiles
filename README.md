@@ -122,6 +122,30 @@ events:
 The `fields` map renames result headers into daytiles event fields. `start` is
 required; the rest are optional.
 
+## Examples vault — copy-paste presets
+
+The `examples-vault/` folder in this repo is a self-contained Obsidian vault
+full of ready-made blocks you can drop straight into your own notes. Every
+layout, shape, event style, heatmap, action link, and Dataview source is in
+there as a working block — open it, copy the one that matches what you want,
+paste it into your vault, and tweak from there.
+
+What's inside:
+
+- `Daytiles-Showcase.md` — the catalog of presets, grouped by layout, shape,
+  and event source.
+- `Journal/` — sample daily notes with frontmatter so the Dataview presets
+  return real results.
+- `.obsidian/community-plugins.json` pre-configured to enable Daytiles and
+  Dataview.
+
+To open it:
+
+1. Build the plugin (`npm run build`).
+2. Copy or symlink `dist/` into `examples-vault/.obsidian/plugins/daytiles/`.
+3. Open `examples-vault/` in Obsidian and trust the vault.
+4. Open `Daytiles-Showcase.md` and start copying blocks.
+
 ## Settings
 
 A **Daytiles** settings tab provides defaults that every code block inherits
