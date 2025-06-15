@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "minAppVersion": "1.4.0",
   "description": "Render daytiles SVG calendars from code blocks. Supports inline events and Dataview queries.",
-  "author": "omi",
-  "authorUrl": "https://github.com/Chamartin3/daytiles",
+  "author": "Chamartin3",
+  "authorUrl": "https://github.com/Chamartin3",
   "isDesktopOnly": false
 }
